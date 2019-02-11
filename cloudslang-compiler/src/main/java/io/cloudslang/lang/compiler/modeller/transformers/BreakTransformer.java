@@ -20,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BreakTransformer implements Transformer<List<String>, List<String>>{
+public class BreakTransformer implements Transformer<List<String>, List<String>> {
 
     @Autowired
     private ExecutableValidator executableValidator;
@@ -29,7 +29,6 @@ public class BreakTransformer implements Transformer<List<String>, List<String>>
     public TransformModellingResult<List<String>> transform(List<String> rawData) {
         List<String> transformedData = new ArrayList<>();
         List<RuntimeException> errors = new ArrayList<>();
-
         if (rawData == null) {
             transformedData.add(ScoreLangConstants.FAILURE_RESULT);
         } else {
@@ -40,7 +39,6 @@ public class BreakTransformer implements Transformer<List<String>, List<String>>
                 errors.add(rex);
             }
         }
-
         return new BasicTransformModellingResult<>(transformedData, errors);
     }
 

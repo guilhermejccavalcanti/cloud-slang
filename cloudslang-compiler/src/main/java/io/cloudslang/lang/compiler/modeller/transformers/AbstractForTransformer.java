@@ -34,10 +34,12 @@ public abstract class AbstractForTransformer extends AbstractInOutForTransformer
     private ExecutableValidator executableValidator;
 
     // case: value in variable_name
-    private final static String FOR_REGEX = "^(\\s+)?(\\w+)\\s+(in)\\s+(\\w+)(\\s+)?$";
+    private static final String FOR_REGEX = "^(\\s+)?(\\w+)\\s+(in)\\s+(\\w+)(\\s+)?$";
+
     // case: key, value
-    private final static String KEY_VALUE_PAIR_REGEX = "^(\\s+)?(\\w+)(\\s+)?(,)(\\s+)?(\\w+)(\\s+)?$";
-    private final static String FOR_IN_KEYWORD= " in ";
+    private static final String KEY_VALUE_PAIR_REGEX = "^(\\s+)?(\\w+)(\\s+)?(,)(\\s+)?(\\w+)(\\s+)?$";
+
+    private static final String FOR_IN_KEYWORD = " in ";
 
     public TransformModellingResult<LoopStatement> transformToLoopStatement(String rawData, boolean isParallelLoop) {
         List<RuntimeException> errors = new ArrayList<>();
@@ -45,34 +47,26 @@ public abstract class AbstractForTransformer extends AbstractInOutForTransformer
         if (StringUtils.isEmpty(rawData)) {
             return new BasicTransformModellingResult<>(null, errors);
         }
-
         LoopStatement loopStatement = null;
         String varName;
         String collectionExpression;
-
         Pattern regexSimpleFor = Pattern.compile(FOR_REGEX);
         Matcher matcherSimpleFor = regexSimpleFor.matcher(rawData);
-
         try {
             if (matcherSimpleFor.find()) {
-                // case: value in variable_name
                 varName = matcherSimpleFor.group(2);
                 collectionExpression = matcherSimpleFor.group(4);
                 loopStatement = createLoopStatement(varName, collectionExpression, dependencyAccumulator, isParallelLoop);
             } else {
                 String beforeInKeyword = StringUtils.substringBefore(rawData, FOR_IN_KEYWORD);
                 collectionExpression = StringUtils.substringAfter(rawData, FOR_IN_KEYWORD).trim();
-
                 Pattern regexKeyValueFor = Pattern.compile(KEY_VALUE_PAIR_REGEX);
                 Matcher matcherKeyValueFor = regexKeyValueFor.matcher(beforeInKeyword);
-
                 if (matcherKeyValueFor.find()) {
-                    // case: key, value
                     String keyName = matcherKeyValueFor.group(2);
                     String valueName = matcherKeyValueFor.group(6);
                     loopStatement = createMapForLoopStatement(keyName, valueName, collectionExpression, dependencyAccumulator);
                 } else {
-                    // case: value in expression_other_than_variable_name
                     varName = beforeInKeyword.trim();
                     loopStatement = createLoopStatement(varName, collectionExpression, dependencyAccumulator, isParallelLoop);
                 }
@@ -80,32 +74,22 @@ public abstract class AbstractForTransformer extends AbstractInOutForTransformer
         } catch (RuntimeException rex) {
             errors.add(rex);
         }
-
         return new BasicTransformModellingResult<>(loopStatement, errors);
     }
 
     private LoopStatement createMapForLoopStatement(String keyName, String valueName, String collectionExpression, Accumulator dependencyAccumulator) {
         validateChars(keyName);
         validateChars(valueName);
-        return new MapForLoopStatement(
-                keyName,
-                valueName,
-                collectionExpression,
-                dependencyAccumulator.getFunctionDependencies(),
-                dependencyAccumulator.getSystemPropertyDependencies());
+        return new MapForLoopStatement(keyName, valueName, collectionExpression, dependencyAccumulator.getFunctionDependencies(), dependencyAccumulator.getSystemPropertyDependencies());
     }
 
     private LoopStatement createLoopStatement(String varName, String collectionExpression, Accumulator dependencyAccumulator, boolean isParallelLoop) {
         validateChars(varName);
         LoopStatement loopStatement;
         if (isParallelLoop) {
-            loopStatement = new ParallelLoopStatement(varName, collectionExpression,
-                    dependencyAccumulator.getFunctionDependencies(),
-                    dependencyAccumulator.getSystemPropertyDependencies());
+            loopStatement = new ParallelLoopStatement(varName, collectionExpression, dependencyAccumulator.getFunctionDependencies(), dependencyAccumulator.getSystemPropertyDependencies());
         } else {
-            loopStatement = new ListForLoopStatement(varName, collectionExpression,
-                    dependencyAccumulator.getFunctionDependencies(),
-                    dependencyAccumulator.getSystemPropertyDependencies());
+            loopStatement = new ListForLoopStatement(varName, collectionExpression, dependencyAccumulator.getFunctionDependencies(), dependencyAccumulator.getSystemPropertyDependencies());
         }
         return loopStatement;
     }

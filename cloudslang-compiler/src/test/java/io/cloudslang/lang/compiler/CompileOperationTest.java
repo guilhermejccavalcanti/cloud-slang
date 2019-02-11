@@ -50,32 +50,25 @@ public class CompileOperationTest {
     public void testCompileOperationWithData() throws Exception {
         URL resource = getClass().getResource("/operation_with_data.sl");
         ExecutionPlan executionPlan = compiler.compile(SlangSource.fromFile(resource.toURI()), null).getExecutionPlan();
-
         ExecutionStep startStep = executionPlan.getStep(1L);
-        @SuppressWarnings("unchecked") List<Input> inputs = (List<Input>) startStep.getActionData().get(ScoreLangConstants.EXECUTABLE_INPUTS_KEY);
-        Assert.assertNotNull("inputs doesn't exist", inputs);
+        @SuppressWarnings(value = { "unchecked" }) List<Input> inputs = (List<Input>) startStep.getActionData().get(ScoreLangConstants.EXECUTABLE_INPUTS_KEY);
+        Assert.assertNotNull("inputs doesn\'t exist", inputs);
         Assert.assertEquals("there is a different number of inputs than expected", 13, inputs.size());
-
         ExecutionStep actionStep = executionPlan.getStep(2L);
         String script = (String) actionStep.getActionData().get(ScoreLangConstants.PYTHON_ACTION_SCRIPT_KEY);
-        Assert.assertNotNull("script doesn't exist", script);
+        Assert.assertNotNull("script doesn\'t exist", script);
         Assert.assertTrue("script is different than expected", script.startsWith("# this is python amigos!!"));
-
         ExecutionStep endStep = executionPlan.getStep(3L);
         Object outputs = endStep.getActionData().get(ScoreLangConstants.EXECUTABLE_OUTPUTS_KEY);
         Object results = endStep.getActionData().get(ScoreLangConstants.EXECUTABLE_RESULTS_KEY);
-
-        Assert.assertNotNull("outputs don't exist", outputs);
-        Assert.assertNotNull("results don't exist", results);
-
+        Assert.assertNotNull("outputs don\'t exist", outputs);
+        Assert.assertNotNull("results don\'t exist", results);
     }
-
 
     @Test
     public void testPreCompileOperationBasic() throws Exception {
         URL resource = getClass().getResource("/check_Weather.sl");
         Executable operation = compiler.preCompile(SlangSource.fromFile(resource.toURI()));
-
         Assert.assertNotNull("preCompiledMetaData is null", operation);
         Assert.assertEquals("Operation name is wrong", "check_Weather", operation.getName());
         Assert.assertEquals("Operation namespace is wrong", "user.ops", operation.getNamespace());
@@ -89,8 +82,7 @@ public class CompileOperationTest {
     public void testCompileOperationMissingClassName() throws Exception {
         URL resource = getClass().getResource("/corrupted/operation_missing_class_name.sl");
         exception.expect(RuntimeException.class);
-        exception.expectMessage("Action syntax is illegal.\n" +
-                "Following tags are missing: [" + SlangTextualKeys.JAVA_ACTION_CLASS_NAME_KEY);
+        exception.expectMessage("Action syntax is illegal.\n" + "Following tags are missing: [" + SlangTextualKeys.JAVA_ACTION_CLASS_NAME_KEY);
         compiler.compile(SlangSource.fromFile(resource.toURI()), null);
     }
 
@@ -98,8 +90,7 @@ public class CompileOperationTest {
     public void testCompileOperationMissingMethodName() throws Exception {
         URL resource = getClass().getResource("/corrupted/operation_missing_method_name.sl");
         exception.expect(RuntimeException.class);
-        exception.expectMessage("Action syntax is illegal.\n" +
-                "Following tags are missing: [" + SlangTextualKeys.JAVA_ACTION_METHOD_NAME_KEY);
+        exception.expectMessage("Action syntax is illegal.\n" + "Following tags are missing: [" + SlangTextualKeys.JAVA_ACTION_METHOD_NAME_KEY);
         compiler.compile(SlangSource.fromFile(resource.toURI()), null);
     }
 
@@ -107,8 +98,7 @@ public class CompileOperationTest {
     public void testCompileOperationInvalidActionProperty() throws Exception {
         URL resource = getClass().getResource("/corrupted/operation_invalid_action_property.sl");
         exception.expect(RuntimeException.class);
-        exception.expectMessage("Action syntax is illegal.\n" +
-                "Following tags are invalid: [IDontBelongHere]. Please take a look at the supported features per versions link");
+        exception.expectMessage("Action syntax is illegal.\n" + "Following tags are invalid: [IDontBelongHere]. Please take a look at the supported features per versions link");
         compiler.compile(SlangSource.fromFile(resource.toURI()), null);
     }
 
@@ -124,8 +114,7 @@ public class CompileOperationTest {
     public void testCompileOperationMissingActionProperties() throws Exception {
         URL resource = getClass().getResource("/corrupted/operation_missing_action_properties.sl");
         exception.expect(RuntimeException.class);
-        exception.expectMessage("Error compiling operation_missing_action_properties. " +
-                "Operation: operation_missing_action_properties has no action data");
+        exception.expectMessage("Error compiling operation_missing_action_properties. " + "Operation: operation_missing_action_properties has no action data");
         compiler.compile(SlangSource.fromFile(resource.toURI()), null);
     }
 
@@ -133,8 +122,7 @@ public class CompileOperationTest {
     public void testCompileOperationMissingPythonScript() throws Exception {
         URL resource = getClass().getResource("/corrupted/operation_missing_python_script.sl");
         exception.expect(RuntimeException.class);
-        exception.expectMessage("Error compiling operation_missing_python_script. " +
-                "Operation: operation_missing_python_script has no action data");
+        exception.expectMessage("Error compiling operation_missing_python_script. " + "Operation: operation_missing_python_script has no action data");
         compiler.compile(SlangSource.fromFile(resource.toURI()), null);
     }
 

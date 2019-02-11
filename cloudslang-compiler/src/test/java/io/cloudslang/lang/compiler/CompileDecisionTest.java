@@ -49,7 +49,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = SlangCompilerSpringConfig.class)
 public class CompileDecisionTest {
+
     public static final HashSet<ScriptFunction> SP_SCRIPT_FUNCTIONS_SET = Sets.newHashSet(ScriptFunction.GET_SYSTEM_PROPERTY);
+
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
@@ -57,190 +59,110 @@ public class CompileDecisionTest {
     private SlangCompiler compiler;
 
     private Set<SlangSource> emptySetSlangSource = Collections.emptySet();
+
     private Set<String> emptySetSystemProperties = Collections.emptySet();
+
     private List<Output> emptyListOutputs = Collections.emptyList();
+
     private Map<String, Serializable> emptyActionData = Collections.emptyMap();
-    private List<Input> inputs1 = Lists.newArrayList(
-            new Input.InputBuilder("x", null).build(),
-            new Input.InputBuilder("y", null).build()
-    );
-    private List<Input> inputs2 = Lists.newArrayList(
-            new Input.InputBuilder("x", null).build(),
-            new Input.InputBuilder("y", null).build(),
-            new Input.InputBuilder("z", "default_value").withRequired(false).build()
-    );
-    private List<Input> inputs3 = Lists.newArrayList(
-            new Input.InputBuilder("x", "${get_sp('user.sys.prop1')}")
-                    .withSystemPropertyDependencies(Sets.newHashSet("user.sys.prop1"))
-                    .withFunctionDependencies(SP_SCRIPT_FUNCTIONS_SET)
-                    .build(),
-            new Input.InputBuilder("y", "${get_sp('user.sys.prop2')}")
-                    .withRequired(false)
-                    .withSystemPropertyDependencies(Sets.newHashSet("user.sys.prop2"))
-                    .withFunctionDependencies(SP_SCRIPT_FUNCTIONS_SET)
-                    .build()
-    );
-    private List<Output> outputs1 = Lists.newArrayList(
-            new Output("sum", ValueFactory.create("${x+y}"))
-    );
-    private List<Output> outputs2 = Lists.newArrayList(
-            new Output(
-                    "sum",
-                    ValueFactory.create("${get_sp('user.sys.prop3')}"),
-                    SP_SCRIPT_FUNCTIONS_SET,
-                    Sets.newHashSet("user.sys.prop3")
-            )
-    );
-    private Set<String> spSet1 = Sets.newHashSet(
-            "user.sys.prop1",
-            "user.sys.prop2",
-            "user.sys.prop3",
-            "user.sys.prop4"
-    );
-    List<Result> results1 = Lists.newArrayList(
-            new Result("EQUAL", ValueFactory.create("${x == y}")),
-            new Result("LESS_THAN", ValueFactory.create("${x < y}")),
-            new Result("GREATER_THAN", null)
-    );
-    List<Result> results2 = Lists.newArrayList(
-            new Result(
-                    "EQUAL",
-                    ValueFactory.create("${x == get_sp('user.sys.prop4')}"),
-                    SP_SCRIPT_FUNCTIONS_SET,
-                    Sets.newHashSet("user.sys.prop4")
-            ),
-            new Result("LESS_THAN", ValueFactory.create("${x < y}")),
-            new Result("GREATER_THAN", null)
-    );
+
+    private List<Input> inputs1 = Lists.newArrayList(new Input.InputBuilder("x", null).build(), new Input.InputBuilder("y", null).build());
+
+    private List<Input> inputs2 = Lists.newArrayList(new Input.InputBuilder("x", null).build(), new Input.InputBuilder("y", null).build(), new Input.InputBuilder("z", "default_value").withRequired(false).build());
+
+    private List<Input> inputs3 = Lists.newArrayList(new Input.InputBuilder("x", "${get_sp(\'user.sys.prop1\')}").withSystemPropertyDependencies(Sets.newHashSet("user.sys.prop1")).withFunctionDependencies(SP_SCRIPT_FUNCTIONS_SET).build(), new Input.InputBuilder("y", "${get_sp(\'user.sys.prop2\')}").withRequired(false).withSystemPropertyDependencies(Sets.newHashSet("user.sys.prop2")).withFunctionDependencies(SP_SCRIPT_FUNCTIONS_SET).build());
+
+    private List<Output> outputs1 = Lists.newArrayList(new Output("sum", ValueFactory.create("${x+y}")));
+
+    private List<Output> outputs2 = Lists.newArrayList(new Output("sum", ValueFactory.create("${get_sp(\'user.sys.prop3\')}"), SP_SCRIPT_FUNCTIONS_SET, Sets.newHashSet("user.sys.prop3")));
+
+    private Set<String> spSet1 = Sets.newHashSet("user.sys.prop1", "user.sys.prop2", "user.sys.prop3", "user.sys.prop4");
+
+    List<Result> results1 = Lists.newArrayList(new Result("EQUAL", ValueFactory.create("${x == y}")), new Result("LESS_THAN", ValueFactory.create("${x < y}")), new Result("GREATER_THAN", null));
+
+    List<Result> results2 = Lists.newArrayList(new Result("EQUAL", ValueFactory.create("${x == get_sp(\'user.sys.prop4\')}"), SP_SCRIPT_FUNCTIONS_SET, Sets.newHashSet("user.sys.prop4")), new Result("LESS_THAN", ValueFactory.create("${x < y}")), new Result("GREATER_THAN", null));
 
     @Test
     public void testDecision1PreCompile() throws Exception {
         URL decision = getClass().getResource("/decision/decision_1.sl");
-
         Executable executable = compiler.preCompile(SlangSource.fromFile(decision.toURI()));
-
         Assert.assertNotNull(executable);
         Assert.assertTrue(executable instanceof Decision);
-        Decision expectedDecision = new Decision(
-                emptyActionData,
-                emptyActionData,
-                "user.decisions",
-                "decision_1",
-                inputs1,
-                outputs1,
-                results1,
-                Collections.<String>emptySet(),
-                emptySetSystemProperties
-        );
+        Decision expectedDecision = new Decision(emptyActionData, emptyActionData, "user.decisions", "decision_1", inputs1, outputs1, results1, Collections.<String>emptySet(), emptySetSystemProperties);
         Assert.assertEquals(expectedDecision, executable);
     }
 
     @Test
     public void testDecision1() throws Exception {
         URL decision = getClass().getResource("/decision/decision_1.sl");
-
         CompilationArtifact compilationArtifact = compiler.compile(SlangSource.fromFile(decision.toURI()), emptySetSlangSource);
-
         validateCompilationArtifact(compilationArtifact, inputs1, outputs1, results1, emptySetSystemProperties);
     }
 
     @Test
     public void testDecision2() throws Exception {
         URL decision = getClass().getResource("/decision/decision_2.sl");
-
         CompilationArtifact compilationArtifact = compiler.compile(SlangSource.fromFile(decision.toURI()), emptySetSlangSource);
-
         validateCompilationArtifact(compilationArtifact, inputs2, emptyListOutputs, results1, emptySetSystemProperties);
     }
 
     @Test
     public void testDecisionSystemPropertyDependencies() throws Exception {
         URL decision = getClass().getResource("/decision/decision_3_sp.sl");
-
         CompilationArtifact compilationArtifact = compiler.compile(SlangSource.fromFile(decision.toURI()), emptySetSlangSource);
-
         validateCompilationArtifact(compilationArtifact, inputs3, outputs2, results2, spSet1);
     }
 
     @Test
     public void testDecisionWrongKey() throws Exception {
         URL decision = getClass().getResource("/decision/decision_4_unrecognized_key.sl");
-
         exception.expect(RuntimeException.class);
-        exception.expectMessage(
-                "Artifact {decision_4_py_action_key} has unrecognized tag {wrong_key}." +
-                        " Please take a look at the supported features per versions link"
-        );
+        exception.expectMessage("Artifact {decision_4_py_action_key} has unrecognized tag {wrong_key}." + " Please take a look at the supported features per versions link");
         compiler.compile(SlangSource.fromFile(decision.toURI()), emptySetSlangSource);
     }
 
     @Test
     public void testDecisionPyActionKey() throws Exception {
         URL decision = getClass().getResource("/decision/decision_4_py_action_key.sl");
-
         exception.expect(RuntimeException.class);
-        exception.expectMessage(
-                "Artifact {decision_4_py_action_key} has unrecognized tag {python_action}." +
-                        " Please take a look at the supported features per versions link"
-        );
+        exception.expectMessage("Artifact {decision_4_py_action_key} has unrecognized tag {python_action}." + " Please take a look at the supported features per versions link");
         compiler.compile(SlangSource.fromFile(decision.toURI()), emptySetSlangSource);
     }
 
     @Test
     public void testDecisionMissingResults() throws Exception {
         URL decision = getClass().getResource("/decision/decision_wo_results.sl");
-
         exception.expect(RuntimeException.class);
-        exception.expectMessage(
-                "Artifact {decision_wo_results} syntax is invalid:" +
-                        " 'results' section cannot be empty for executable type 'decision'"
-        );
+        exception.expectMessage("Artifact {decision_wo_results} syntax is invalid:" + " \'results\' section cannot be empty for executable type \'decision\'");
         compiler.compile(SlangSource.fromFile(decision.toURI()), emptySetSlangSource);
     }
 
-    private void validateCompilationArtifact(
-            CompilationArtifact compilationArtifact,
-            List<Input> expectedInputs,
-            List<Output> expectedOutputs,
-            List<Result> expectedResults,
-            Set<String> expectedSystemProperties) {
+    private void validateCompilationArtifact(CompilationArtifact compilationArtifact, List<Input> expectedInputs, List<Output> expectedOutputs, List<Result> expectedResults, Set<String> expectedSystemProperties) {
         Assert.assertNotNull(compilationArtifact);
-
         validateExecutionPlan(compilationArtifact.getExecutionPlan(), expectedInputs, expectedOutputs, expectedResults);
-
         Assert.assertTrue(MapUtils.isEmpty(compilationArtifact.getDependencies()));
         Assert.assertEquals(expectedInputs, compilationArtifact.getInputs());
         Assert.assertEquals(expectedSystemProperties, compilationArtifact.getSystemProperties());
     }
 
-    private void validateExecutionPlan(
-            ExecutionPlan executionPlan,
-            Object expectedInputs,
-            Object expectedOutputs,
-            Object expectedResults) {
+    private void validateExecutionPlan(ExecutionPlan executionPlan, Object expectedInputs, Object expectedOutputs, Object expectedResults) {
         Assert.assertNotNull(executionPlan);
         Map<Long, ExecutionStep> steps = executionPlan.getSteps();
         Assert.assertNotNull(steps);
         Assert.assertEquals(2, steps.size());
-
         ExecutionStep firstStep = steps.get(1L);
         Assert.assertNotNull(firstStep);
         Map<String, ?> actionData1 = firstStep.getActionData();
         Assert.assertNotNull(actionData1);
-        //inputs
         Object actualInputs = actionData1.get(ScoreLangConstants.EXECUTABLE_INPUTS_KEY);
         Assert.assertEquals(expectedInputs, actualInputs);
-
         ExecutionStep secondStep = steps.get(2L);
         Assert.assertNotNull(secondStep);
         Map<String, ?> actionData2 = secondStep.getActionData();
         Assert.assertNotNull(actionData2);
-        //outputs
         Object actualOutputs = actionData2.get(ScoreLangConstants.EXECUTABLE_OUTPUTS_KEY);
         Assert.assertEquals(expectedOutputs, actualOutputs);
-        //results
         Object actualResults = actionData2.get(ScoreLangConstants.EXECUTABLE_RESULTS_KEY);
         Assert.assertEquals(expectedResults, actualResults);
     }
-
 }

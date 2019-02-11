@@ -21,11 +21,15 @@ import org.apache.commons.lang3.StringUtils;
  * Date: 6/17/2016
  */
 public abstract class AbstractValidator {
+
     public static final String NAME_PLACEHOLDER = "name_placeholder01";
 
     protected PatternMatcher namespacePatternMatcher;
+
     protected PatternMatcher simpleNamePatternMatcher;
+
     protected PatternMatcher resultNamePatternMatcher;
+
     protected PatternMatcher variableNamePatternMatcher;
 
     public AbstractValidator() {
@@ -79,28 +83,21 @@ public abstract class AbstractValidator {
 
     private void validateChars(PatternMatcher patternMatcher, String input) {
         if (!patternMatcher.matchesEndToEnd(input)) {
-            throw new RuntimeException("Argument[" + input +"] violates character rules.");
+            throw new RuntimeException("Argument[" + input + "] violates character rules.");
         }
     }
 
     private void validateDelimiter(String input) {
         if (input.startsWith(RegexConstants.NAMESPACE_PROPERTY_DELIMITER)) {
-            throw new RuntimeException(
-                    "Argument[" + input +"] cannot start with delimiter[" + RegexConstants.NAMESPACE_PROPERTY_DELIMITER + "]."
-            );
+            throw new RuntimeException("Argument[" + input + "] cannot start with delimiter[" + RegexConstants.NAMESPACE_PROPERTY_DELIMITER + "].");
         }
         if (input.endsWith(RegexConstants.NAMESPACE_PROPERTY_DELIMITER)) {
-            throw new RuntimeException(
-                    "Argument[" + input +"] cannot end with delimiter[" + RegexConstants.NAMESPACE_PROPERTY_DELIMITER + "]."
-            );
+            throw new RuntimeException("Argument[" + input + "] cannot end with delimiter[" + RegexConstants.NAMESPACE_PROPERTY_DELIMITER + "].");
         }
         String[] parts = input.split(RegexConstants.NAMESPACE_DELIMITER_ESCAPED);
         for (String part : parts) {
             if ("".equals(part)) {
-                throw new RuntimeException(
-                        "Argument[" + input + "] cannot contain multiple delimiters["
-                                + RegexConstants.NAMESPACE_PROPERTY_DELIMITER + "] without content."
-                );
+                throw new RuntimeException("Argument[" + input + "] cannot contain multiple delimiters[" + RegexConstants.NAMESPACE_PROPERTY_DELIMITER + "] without content.");
             }
         }
     }

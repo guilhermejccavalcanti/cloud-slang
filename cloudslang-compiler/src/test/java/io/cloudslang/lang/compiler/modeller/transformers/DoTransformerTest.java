@@ -31,17 +31,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.introspector.BeanAccess;
 
-/*******************************************************************************
-* (c) Copyright 2014 Hewlett-Packard Development Company, L.P.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License v2.0 which accompany this distribution.
-*
-* The Apache License is available at
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-*******************************************************************************/
-
-
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = DoTransformerTest.Config.class)
 public class DoTransformerTest extends TransformersTestParent {
@@ -57,34 +46,31 @@ public class DoTransformerTest extends TransformersTestParent {
 
     @Test
     public void testTransformExpression() throws Exception {
-        @SuppressWarnings("unchecked")
-        Map<String, Object> doArgumentsMap = loadFirstStepFromFile("/flow_with_data.yaml");
-        @SuppressWarnings("unchecked") List<Argument> arguments = doTransformer.transform(doArgumentsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) Map<String, Object> doArgumentsMap = loadFirstStepFromFile("/flow_with_data.yaml");
+        @SuppressWarnings(value = { "unchecked" }) List<Argument> arguments = doTransformer.transform(doArgumentsMap).getTransformedData();
         Assert.assertFalse(arguments.isEmpty());
         Assert.assertEquals(3, arguments.size());
         Argument argument = arguments.iterator().next();
-        Assert.assertEquals("city",argument.getName());
+        Assert.assertEquals("city", argument.getName());
         Assert.assertEquals("city_name", argument.getValue().get());
         Assert.assertEquals(true, argument.isPrivateArgument());
     }
 
     @Test
     public void testTransformNoValue() throws Exception {
-        @SuppressWarnings("unchecked")
-        Map<String, Object> doArgumentsMap = loadFirstStepFromFile("/basic_flow.yaml");
-        @SuppressWarnings("unchecked") List<Argument> arguments = doTransformer.transform(doArgumentsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) Map<String, Object> doArgumentsMap = loadFirstStepFromFile("/basic_flow.yaml");
+        @SuppressWarnings(value = { "unchecked" }) List<Argument> arguments = doTransformer.transform(doArgumentsMap).getTransformedData();
         Assert.assertFalse(arguments.isEmpty());
         Assert.assertEquals(3, arguments.size());
         Argument argument = arguments.get(1);
-        Assert.assertEquals("port",argument.getName());
+        Assert.assertEquals("port", argument.getName());
         Assert.assertEquals(false, argument.isPrivateArgument());
     }
 
     @Test
     public void testTransformConst() throws Exception {
-        @SuppressWarnings("unchecked")
-        Map<String, Object> doArgumentsMap = loadFirstStepFromFile("/flow_with_data.yaml");
-        @SuppressWarnings("unchecked") List<Argument> arguments = doTransformer.transform(doArgumentsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) Map<String, Object> doArgumentsMap = loadFirstStepFromFile("/flow_with_data.yaml");
+        @SuppressWarnings(value = { "unchecked" }) List<Argument> arguments = doTransformer.transform(doArgumentsMap).getTransformedData();
         Assert.assertFalse(arguments.isEmpty());
         Assert.assertEquals(3, arguments.size());
         Argument argument = arguments.get(1);
@@ -94,9 +80,8 @@ public class DoTransformerTest extends TransformersTestParent {
 
     @Test
     public void testTransformEmptyArgumentExpression() throws Exception {
-        @SuppressWarnings("unchecked")
-        Map<String, Object> doArgumentsMap = loadFirstStepFromFile("/corrupted/flow_with_empty_argument_expression.yaml");
-        @SuppressWarnings("unchecked") List<Argument> arguments = doTransformer.transform(doArgumentsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) Map<String, Object> doArgumentsMap = loadFirstStepFromFile("/corrupted/flow_with_empty_argument_expression.yaml");
+        @SuppressWarnings(value = { "unchecked" }) List<Argument> arguments = doTransformer.transform(doArgumentsMap).getTransformedData();
         Assert.assertFalse(arguments.isEmpty());
         Assert.assertEquals(2, arguments.size());
         Argument argument = arguments.get(1);
@@ -109,10 +94,7 @@ public class DoTransformerTest extends TransformersTestParent {
         exception.expect(RuntimeException.class);
         exception.expectMessage("argument");
         exception.expectMessage("22");
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> doArgumentsMap = loadFirstStepFromFile("/corrupted/flow_with_invalid_argument.yaml");
-
+        @SuppressWarnings(value = { "unchecked" }) Map<String, Object> doArgumentsMap = loadFirstStepFromFile("/corrupted/flow_with_invalid_argument.yaml");
         transformAndThrowFirstException(doTransformer, doArgumentsMap);
     }
 
@@ -120,10 +102,7 @@ public class DoTransformerTest extends TransformersTestParent {
     public void testOneLinerTransformIsInvalid() throws Exception {
         exception.expect(RuntimeException.class);
         exception.expectMessage("Step arguments should be defined using a standard YAML list.");
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> doArgumentsMap = loadFirstStepFromFile("/step-args-in-list/flow_arguments_one_liner.yaml");
-
+        @SuppressWarnings(value = { "unchecked" }) Map<String, Object> doArgumentsMap = loadFirstStepFromFile("/step-args-in-list/flow_arguments_one_liner.yaml");
         transformAndThrowFirstException(doTransformer, doArgumentsMap);
     }
 
@@ -132,10 +111,9 @@ public class DoTransformerTest extends TransformersTestParent {
         URL resource = getClass().getResource(path);
         File file = new File(resource.toURI());
         ParsedSlang parsedSlang = yamlParser.parse(SlangSource.fromFile(file));
-        @SuppressWarnings("unchecked")
-        List<Map<String, Map>> flow = (List<Map<String, Map>>) parsedSlang.getFlow().get(SlangTextualKeys.WORKFLOW_KEY);
-        for(Map<String, Map> step : flow){
-            if(step.keySet().iterator().next().equals("CheckWeather")){
+        @SuppressWarnings(value = { "unchecked" }) List<Map<String, Map>> flow = (List<Map<String, Map>>) parsedSlang.getFlow().get(SlangTextualKeys.WORKFLOW_KEY);
+        for (Map<String, Map> step : flow) {
+            if (step.keySet().iterator().next().equals("CheckWeather")) {
                 doArgumentsMap = (Map) step.values().iterator().next().get(SlangTextualKeys.DO_KEY);
                 return doArgumentsMap;
             }
@@ -182,6 +160,5 @@ public class DoTransformerTest extends TransformersTestParent {
         public SystemPropertyValidator systemPropertyValidator() {
             return new SystemPropertyValidatorImpl();
         }
-
     }
 }

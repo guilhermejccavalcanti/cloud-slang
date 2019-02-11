@@ -1,16 +1,5 @@
 package io.cloudslang.lang.compiler.modeller.transformers;
 
-/*******************************************************************************
-* (c) Copyright 2014 Hewlett-Packard Development Company, L.P.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License v2.0 which accompany this distribution.
-*
-* The Apache License is available at
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-*******************************************************************************/
-
-
 import com.google.common.collect.Sets;
 import io.cloudslang.lang.compiler.SlangSource;
 import io.cloudslang.lang.compiler.parser.YamlParser;
@@ -58,6 +47,7 @@ public class InputsTransformerTest extends TransformersTestParent {
     private YamlParser yamlParser;
 
     private List<Object> inputsMap;
+
     private List<Object> inputsMapWithFunctions;
 
     @Rule
@@ -78,13 +68,13 @@ public class InputsTransformerTest extends TransformersTestParent {
 
     @Test
     public void testTransform() throws Exception {
-        @SuppressWarnings("unchecked") List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
         Assert.assertFalse(inputs.isEmpty());
     }
 
     @Test
     public void testSimpleRefInput() throws Exception {
-        @SuppressWarnings("unchecked") List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
         Input input = inputs.get(0);
         Assert.assertEquals("input1", input.getName());
         Assert.assertNull(null, input.getValue().get());
@@ -92,7 +82,7 @@ public class InputsTransformerTest extends TransformersTestParent {
 
     @Test
     public void testExplicitRefInput() throws Exception {
-        @SuppressWarnings("unchecked") List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
         Input input = inputs.get(1);
         Assert.assertEquals("input2", input.getName());
         Assert.assertEquals("${ input2 }", input.getValue().get());
@@ -100,7 +90,7 @@ public class InputsTransformerTest extends TransformersTestParent {
 
     @Test
     public void testDefaultValueInput() throws Exception {
-        @SuppressWarnings("unchecked") List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
         Input input = inputs.get(2);
         Assert.assertEquals("input3", input.getName());
         Assert.assertEquals("value3", input.getValue().get());
@@ -108,15 +98,15 @@ public class InputsTransformerTest extends TransformersTestParent {
 
     @Test
     public void testInlineExprInput() throws Exception {
-        @SuppressWarnings("unchecked") List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
         Input input = inputs.get(3);
         Assert.assertEquals("input4", input.getName());
-        Assert.assertEquals("${ 'value4' if input3 == value3 else None }", input.getValue().get());
+        Assert.assertEquals("${ \'value4\' if input3 == value3 else None }", input.getValue().get());
     }
 
     @Test
     public void testReqEncInput() throws Exception {
-        @SuppressWarnings("unchecked") List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
         Input input = inputs.get(4);
         Assert.assertEquals("input5", input.getName());
         Assert.assertEquals(null, input.getValue().get());
@@ -126,7 +116,7 @@ public class InputsTransformerTest extends TransformersTestParent {
 
     @Test
     public void testDefaultExprReqInput() throws Exception {
-        @SuppressWarnings("unchecked") List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
         Input input = inputs.get(5);
         Assert.assertEquals("input6", input.getName());
         Assert.assertEquals("${ 1 + 5 }", input.getValue().get());
@@ -136,7 +126,7 @@ public class InputsTransformerTest extends TransformersTestParent {
 
     @Test
     public void testInlineConstInput() throws Exception {
-        @SuppressWarnings("unchecked") List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
         Input input = inputs.get(6);
         Assert.assertEquals("input7", input.getName());
         Assert.assertTrue("77".equals(input.getValue().get()));
@@ -146,7 +136,7 @@ public class InputsTransformerTest extends TransformersTestParent {
 
     @Test
     public void testDefaultExprRefInput() throws Exception {
-        @SuppressWarnings("unchecked") List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
         Input input = inputs.get(7);
         Assert.assertEquals("input8", input.getName());
         Assert.assertEquals("${ input6 }", input.getValue().get());
@@ -156,7 +146,7 @@ public class InputsTransformerTest extends TransformersTestParent {
 
     @Test
     public void testOverrideInput() throws Exception {
-        @SuppressWarnings("unchecked") List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
         Input input = inputs.get(8);
         Assert.assertEquals("input9", input.getName());
         Assert.assertEquals("${ input6 }", input.getValue().get());
@@ -187,15 +177,15 @@ public class InputsTransformerTest extends TransformersTestParent {
 
     @Test
     public void testLeadingSpaces() throws Exception {
-        @SuppressWarnings("unchecked") List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
         Input input = inputs.get(9);
         Assert.assertEquals("input10", input.getName());
         Assert.assertEquals("${ input5 }", input.getValue().get());
     }
 
     @Test
-     public void testLeadingAndTrailingSpaces() throws Exception {
-        @SuppressWarnings("unchecked") List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
+    public void testLeadingAndTrailingSpaces() throws Exception {
+        @SuppressWarnings(value = { "unchecked" }) List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
         Input input = inputs.get(10);
         Assert.assertEquals("input11", input.getName());
         Assert.assertEquals("${ 5 + 6 }", input.getValue().get());
@@ -203,7 +193,7 @@ public class InputsTransformerTest extends TransformersTestParent {
 
     @Test
     public void testLeadingAndTrailingSpacesComplex() throws Exception {
-        @SuppressWarnings("unchecked") List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) List<Input> inputs = inputTransformer.transform(inputsMap).getTransformedData();
         Input input = inputs.get(11);
         Assert.assertEquals("input12", input.getName());
         Assert.assertEquals("${ \"mighty\" + \" max\"   + varX }", input.getValue().get());
@@ -211,9 +201,7 @@ public class InputsTransformerTest extends TransformersTestParent {
 
     @Test
     public void testFunctionsAndSPDependencies() throws Exception {
-        @SuppressWarnings("unchecked") List<Input> inputs = inputTransformer.transform(inputsMapWithFunctions).getTransformedData();
-
-        // prepare parameters
+        @SuppressWarnings(value = { "unchecked" }) List<Input> inputs = inputTransformer.transform(inputsMapWithFunctions).getTransformedData();
         Set<ScriptFunction> setGet = Sets.newHashSet(ScriptFunction.GET);
         Set<ScriptFunction> setSP = Sets.newHashSet(ScriptFunction.GET_SYSTEM_PROPERTY);
         Set<ScriptFunction> setGetAndSP = new HashSet<>(setGet);
@@ -224,9 +212,7 @@ public class InputsTransformerTest extends TransformersTestParent {
         Set<String> emptySetString = new HashSet<>();
         Set<ScriptFunction> setGetAndCheckEmpty = new HashSet<>(setGet);
         setGetAndCheckEmpty.add(ScriptFunction.CHECK_EMPTY);
-
         Assert.assertEquals("inputs size not as expected", 14, inputs.size());
-
         verifyFunctionsAndSPDependencies(inputs, 0, emptySetScriptFunction, emptySetString);
         verifyFunctionsAndSPDependencies(inputs, 1, emptySetScriptFunction, emptySetString);
         verifyFunctionsAndSPDependencies(inputs, 2, setGet, emptySetString);
@@ -243,11 +229,7 @@ public class InputsTransformerTest extends TransformersTestParent {
         verifyFunctionsAndSPDependencies(inputs, 13, setGetAndCheckEmpty, emptySetString);
     }
 
-    private void verifyFunctionsAndSPDependencies(
-            List<Input> inputs,
-            int inputIndex,
-            Set<ScriptFunction> expectedFunctions,
-            Set<String> expectedSystemProperties) {
+    private void verifyFunctionsAndSPDependencies(List<Input> inputs, int inputIndex, Set<ScriptFunction> expectedFunctions, Set<String> expectedSystemProperties) {
         Input input = inputs.get(inputIndex);
         Assert.assertEquals(expectedFunctions, input.getFunctionDependencies());
         Assert.assertEquals(expectedSystemProperties, input.getSystemPropertyDependencies());
@@ -302,6 +284,5 @@ public class InputsTransformerTest extends TransformersTestParent {
         public SystemPropertyValidator systemPropertyValidator() {
             return new SystemPropertyValidatorImpl();
         }
-
     }
 }

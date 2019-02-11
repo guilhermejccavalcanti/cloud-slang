@@ -47,18 +47,20 @@ public class BreakTransformerTest extends TransformersTestParent {
 
     @Configuration
     public static class Config {
+
         @Bean
         public BreakTransformer breakTransformer() {
             return new BreakTransformer();
         }
+
         @Bean
         public ExecutableValidator executableValidator() {
             return new ExecutableValidatorImpl();
         }
+
         @Bean
         public SystemPropertyValidator systemPropertyValidator() {
             return new SystemPropertyValidatorImpl();
         }
     }
-
 }

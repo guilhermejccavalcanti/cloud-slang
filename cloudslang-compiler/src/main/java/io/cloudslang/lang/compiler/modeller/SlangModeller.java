@@ -11,10 +11,6 @@ package io.cloudslang.lang.compiler.modeller;
 import io.cloudslang.lang.compiler.modeller.result.ExecutableModellingResult;
 import io.cloudslang.lang.compiler.modeller.result.ParseModellingResult;
 
-/*
- * Created by stoneo on 2/2/2015.
- */
-
 /**
  * Slang modeller - transforms a {@link io.cloudslang.lang.compiler.parser.model.ParsedSlang} source into
  * the Slang model - an {@link io.cloudslang.lang.compiler.modeller.model.Executable} object
@@ -28,4 +24,10 @@ public interface SlangModeller {
      * which is either a flow or an operations in the file
      */
     ExecutableModellingResult createModel(ParseModellingResult parseModellingResult);
+    /**
+     * Pre-compile a Slang source into an {@link ExecutableModellingResult}
+     * @param parsedSlang the {@link io.cloudslang.lang.compiler.parser.model.ParsedSlang} source
+     * @return an {@link ExecutableModellingResult} object, containing an executable
+     * which is either a flow or an operations in the file
+     */
 }

@@ -30,7 +30,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import static ch.lambdaj.Lambda.exists;
 import static ch.lambdaj.Lambda.having;
 import static ch.lambdaj.Lambda.on;
@@ -48,10 +47,11 @@ public class PreCompileValidatorImpl extends AbstractValidator implements PreCom
     @Autowired
     private ExecutableValidator executableValidator;
 
-    public static final String MULTIPLE_ON_FAILURE_MESSAGE_SUFFIX = "Multiple 'on_failure' steps found";
-    public static final String ON_FAILURE_LAST_STEP_MESSAGE_SUFFIX = "'on_failure' should be last step in the workflow";
-    public static final String FLOW_RESULTS_WITH_EXPRESSIONS_MESSAGE =
-            "Explicit values are not allowed for flow results. Correct format is:";
+    public static final String MULTIPLE_ON_FAILURE_MESSAGE_SUFFIX = "Multiple \'on_failure\' steps found";
+
+    public static final String ON_FAILURE_LAST_STEP_MESSAGE_SUFFIX = "\'on_failure\' should be last step in the workflow";
+
+    public static final String FLOW_RESULTS_WITH_EXPRESSIONS_MESSAGE = "Explicit values are not allowed for flow results. Correct format is:";
 
     @Override
     public String validateExecutableRawData(ParsedSlang parsedSlang, Map<String, Object> executableRawData, List<RuntimeException> errors) {
@@ -67,7 +67,6 @@ public class PreCompileValidatorImpl extends AbstractValidator implements PreCom
                     errors.add(new IllegalArgumentException("Error compiling " + parsedSlang.getName() + ". Executable data for: \'" + executableName + "\' is empty"));
                 }
             }
-
             return executableName;
         }
     }
@@ -91,11 +90,9 @@ public class PreCompileValidatorImpl extends AbstractValidator implements PreCom
         }
         for (Map<String, Map<String, Object>> step : workFlowRawData) {
             if (step.size() > 1) {
-                errors.add(new RuntimeException("Error compiling source '" + parsedSlang.getName() + "'.\nFlow: '" + executableName +
-                        "' has steps with keyword on the same indentation as the step name or there is no space between step name and hyphen."));
+                errors.add(new RuntimeException("Error compiling source '" + parsedSlang.getName() + "'.\nFlow: '" + executableName + "' has steps with keyword on the same indentation as the step name or there is no space between step name and hyphen."));
             }
         }
-
         return workFlowRawData;
     }
 
@@ -103,50 +100,35 @@ public class PreCompileValidatorImpl extends AbstractValidator implements PreCom
     public ExecutableModellingResult validateResult(ParsedSlang parsedSlang, String executableName, ExecutableModellingResult result) {
         validateFileName(executableName, parsedSlang, result);
         validateInputNamesDifferentFromOutputNames(result);
-
         if (SlangTextualKeys.FLOW_TYPE.equals(result.getExecutable().getType())) {
             validateFlow((Flow) result.getExecutable(), result);
         }
-
         return result;
     }
 
     @Override
-    public List<RuntimeException> checkKeyWords(
-            String dataLogicalName,
-            String parentProperty,
-            Map<String, Object> rawData,
-            List<Transformer> allRelevantTransformers,
-            List<String> additionalValidKeyWords,
-            List<List<String>> constraintGroups) {
+    public List<RuntimeException> checkKeyWords(String dataLogicalName, String parentProperty, Map<String, Object> rawData, List<Transformer> allRelevantTransformers, List<String> additionalValidKeyWords, List<List<String>> constraintGroups) {
         Set<String> validKeywords = new HashSet<>();
-
         List<RuntimeException> errors = new ArrayList<>();
         if (additionalValidKeyWords != null) {
             validKeywords.addAll(additionalValidKeyWords);
         }
-
         for (Transformer transformer : allRelevantTransformers) {
             validKeywords.add(TransformersHandler.keyToTransform(transformer));
         }
-
         Set<String> rawDataKeySet = rawData.keySet();
         for (String key : rawDataKeySet) {
             if (!(exists(validKeywords, equalToIgnoringCase(key)))) {
-                String additionalParentPropertyMessage =
-                        StringUtils.isEmpty(parentProperty) ? "" : " under \'" + parentProperty + "\'";
-                errors.add(new RuntimeException("Artifact {" + dataLogicalName + "} has unrecognized tag {" + key + "}" +
-                        additionalParentPropertyMessage + ". Please take a look at the supported features per versions link"));
+                String additionalParentPropertyMessage = StringUtils.isEmpty(parentProperty) ? "" : " under \'" + parentProperty + "\'";
+                errors.add(new RuntimeException("Artifact {" + dataLogicalName + "} has unrecognized tag {" + key + "}" + additionalParentPropertyMessage + ". Please take a look at the supported features per versions link"));
             }
         }
-
         if (constraintGroups != null) {
             for (List<String> group : constraintGroups) {
                 String lastKeyFound = null;
                 for (String key : group) {
                     if (rawDataKeySet.contains(key)) {
                         if (lastKeyFound != null) {
-                            // one key from this group was already found in action data
                             errors.add(new RuntimeException("Conflicting keys[" + lastKeyFound + ", " + key + "] at: " + dataLogicalName));
                         } else {
                             lastKeyFound = key;
@@ -159,35 +141,29 @@ public class PreCompileValidatorImpl extends AbstractValidator implements PreCom
     }
 
     @Override
-    public Map<String, Map<String, Object>> validateOnFailurePosition(
-            List<Map<String, Map<String, Object>>> workFlowRawData,
-            String execName,
-            List<RuntimeException> errors) {
+    public Map<String, Map<String, Object>> validateOnFailurePosition(List<Map<String, Map<String, Object>>> workFlowRawData, String execName, List<RuntimeException> errors) {
         Iterator<Map<String, Map<String, Object>>> stepsIterator = workFlowRawData.iterator();
         int onFailureCount = 0;
         String latestStepName = null;
         List<RuntimeException> onFailureErrors = new ArrayList<>();
         Map<String, Map<String, Object>> onFailureData = null;
-
         while (stepsIterator.hasNext()) {
             Map<String, Map<String, Object>> stepData = stepsIterator.next();
             latestStepName = stepData.keySet().iterator().next();
             if (latestStepName.equals(ON_FAILURE_KEY)) {
                 if (onFailureCount == 1) {
-                    onFailureErrors.add(new RuntimeException("Flow: '" + execName + "' syntax is illegal.\n" + MULTIPLE_ON_FAILURE_MESSAGE_SUFFIX));
+                    onFailureErrors.add(new RuntimeException("Flow: \'" + execName + "\' syntax is illegal.\n" + MULTIPLE_ON_FAILURE_MESSAGE_SUFFIX));
                 }
                 ++onFailureCount;
                 onFailureData = stepData;
                 stepsIterator.remove();
             }
         }
-        // exactly one on_failure -> need to be last step
         if (onFailureCount == 1) {
             if (!ON_FAILURE_KEY.equals(latestStepName)) {
-                onFailureErrors.add(new RuntimeException("Flow: '" + execName + "' syntax is illegal.\n" + ON_FAILURE_LAST_STEP_MESSAGE_SUFFIX));
+                onFailureErrors.add(new RuntimeException("Flow: \'" + execName + "\' syntax is illegal.\n" + ON_FAILURE_LAST_STEP_MESSAGE_SUFFIX));
             }
         }
-
         if (CollectionUtils.isEmpty(onFailureErrors)) {
             return onFailureData;
         } else {
@@ -197,29 +173,18 @@ public class PreCompileValidatorImpl extends AbstractValidator implements PreCom
     }
 
     @Override
-    public void validateDecisionResultsSection(
-            Map<String, Object> executableRawData,
-            String artifact,
-            List<RuntimeException> errors) {
+    public void validateDecisionResultsSection(Map<String, Object> executableRawData, String artifact, List<RuntimeException> errors) {
         Object resultsValue = executableRawData.get(SlangTextualKeys.RESULTS_KEY);
         if (resultsValue == null || (resultsValue instanceof List && ((List) resultsValue).isEmpty())) {
-            errors.add(
-                    new RuntimeException(
-                            "Artifact {" + artifact + "} syntax is invalid: " +
-                                    "'" + SlangTextualKeys.RESULTS_KEY +
-                                    "' section cannot be empty for executable type '" +
-                                    ParsedSlang.Type.DECISION.key() + "'"
-                    )
-            );
+            errors.add(new RuntimeException("Artifact {" + artifact + "} syntax is invalid: " + "\'" + SlangTextualKeys.RESULTS_KEY + "\' section cannot be empty for executable type \'" + ParsedSlang.Type.DECISION.key() + "\'"));
         }
     }
 
     @Override
-    public  List<RuntimeException> validateNoDuplicateInOutParams(List<? extends InOutParam> inputs, InOutParam element) {
+    public List<RuntimeException> validateNoDuplicateInOutParams(List<? extends InOutParam> inputs, InOutParam element) {
         List<RuntimeException> errors = new ArrayList<>();
         Collection<InOutParam> inOutParams = new ArrayList<>();
         inOutParams.addAll(inputs);
-
         String message = "Duplicate " + getMessagePart(element.getClass()) + " found: " + element.getName();
         validateNotDuplicateInOutParam(inOutParams, element, message, errors);
         return errors;
@@ -228,8 +193,7 @@ public class PreCompileValidatorImpl extends AbstractValidator implements PreCom
     @Override
     public void validateStringValue(String name, Serializable value, InOutTransformer transformer) {
         if (value != null && !(value instanceof String)) {
-            throw new RuntimeException(StringUtils.capitalize(getMessagePart(transformer.getTransformedObjectsClass())) + ": '" + name
-                    + "' should have a String value.");
+            throw new RuntimeException(StringUtils.capitalize(getMessagePart(transformer.getTransformedObjectsClass())) + ": \'" + name + "\' should have a String value.");
         }
     }
 
@@ -237,13 +201,7 @@ public class PreCompileValidatorImpl extends AbstractValidator implements PreCom
     public void validateResultsHaveNoExpression(List<Result> results, String artifactName, List<RuntimeException> errors) {
         for (Result result : results) {
             if (result.getValue() != null) {
-                errors.add(
-                        new RuntimeException(
-                                "Flow: '" + artifactName + "' syntax is illegal. Error compiling result: '" +
-                                        result.getName() + "'. " + FLOW_RESULTS_WITH_EXPRESSIONS_MESSAGE +
-                                        " '- " + result.getName() + "'."
-                        )
-                );
+                errors.add(new RuntimeException("Flow: \'" + artifactName + "\' syntax is illegal. Error compiling result: \'" + result.getName() + "\'. " + FLOW_RESULTS_WITH_EXPRESSIONS_MESSAGE + " \'- " + result.getName() + "\'."));
             }
         }
     }
@@ -254,11 +212,7 @@ public class PreCompileValidatorImpl extends AbstractValidator implements PreCom
             if (!(result.getValue() == null) && !(result.getValue().get() == null)) {
                 Serializable value = result.getValue().get();
                 if (!(value instanceof String || Boolean.TRUE.equals(value))) {
-                    errors.add(
-                            new RuntimeException("Flow: '" + artifactName + "' syntax is illegal. Error compiling result: '" +
-                                    result.getName() + "'. Value supports only expression or boolean true values."
-                            )
-                    );
+                    errors.add(new RuntimeException("Flow: \'" + artifactName + "\' syntax is illegal. Error compiling result: \'" + result.getName() + "\'. Value supports only expression or boolean true values."));
                 }
             }
         }
@@ -266,22 +220,16 @@ public class PreCompileValidatorImpl extends AbstractValidator implements PreCom
 
     @Override
     public void validateDefaultResult(List<Result> results, String artifactName, List<RuntimeException> errors) {
-        for (int i = 0; i < results.size()-1; i++) {
+        for (int i = 0; i < results.size() - 1; i++) {
             Result currentResult = results.get(i);
             if (ResultUtils.isDefaultResult(currentResult)) {
-                errors.add(new RuntimeException(
-                        "Flow: '" + artifactName + "' syntax is illegal. Error compiling result: '" +
-                                currentResult.getName() + "'. Default result should be on last position."
-                ));
+                errors.add(new RuntimeException("Flow: \'" + artifactName + "\' syntax is illegal. Error compiling result: \'" + currentResult.getName() + "\'. Default result should be on last position."));
             }
         }
         if (results.size() > 0) {
             Result lastResult = results.get(results.size() - 1);
             if (!ResultUtils.isDefaultResult(lastResult)) {
-                errors.add(new RuntimeException(
-                        "Flow: '" + artifactName + "' syntax is illegal. Error compiling result: '" +
-                                lastResult.getName() + "'. Last result should be default result."
-                ));
+                errors.add(new RuntimeException("Flow: \'" + artifactName + "\' syntax is illegal. Error compiling result: \'" + lastResult.getName() + "\'. Last result should be default result."));
             }
         }
     }
@@ -290,12 +238,18 @@ public class PreCompileValidatorImpl extends AbstractValidator implements PreCom
         String messagePart = "";
         if (aClass.equals(Input.class)) {
             messagePart = "input";
-        } else if (aClass.equals(Argument.class)) {
-            messagePart = "step input";
-        } else if (aClass.equals(Output.class)) {
-            messagePart = "output / publish value";
-        } else if (aClass.equals(Result.class)) {
-            messagePart = "result";
+        } else {
+            if (aClass.equals(Argument.class)) {
+                messagePart = "step input";
+            } else {
+                if (aClass.equals(Output.class)) {
+                    messagePart = "output / publish value";
+                } else {
+                    if (aClass.equals(Result.class)) {
+                        messagePart = "result";
+                    }
+                }
+            }
         }
         return messagePart;
     }
@@ -322,27 +276,13 @@ public class PreCompileValidatorImpl extends AbstractValidator implements PreCom
             Set<String> reachableResultNames = new HashSet<>();
             List<String> resultNames = getResultNames(compiledFlow);
             Deque<Step> steps = compiledFlow.getWorkflow().getSteps();
-
-            validateNavigation(
-                    compiledFlow.getWorkflow().getSteps().getFirst(),
-                    steps,
-                    resultNames,
-                    reachableStepNames,
-                    reachableResultNames,
-                    errors
-            );
+            validateNavigation(compiledFlow.getWorkflow().getSteps().getFirst(), steps, resultNames, reachableStepNames, reachableResultNames, errors);
             validateStepsAreReachable(reachableStepNames, steps, errors);
             validateResultsAreReachable(reachableResultNames, resultNames, errors);
         }
     }
 
-    private void validateNavigation(
-            Step currentStep,
-            Deque<Step> steps,
-            List<String> resultNames,
-            Set<String> reachableStepNames,
-            Set<String> reachableResultNames,
-            List<RuntimeException> errors) {
+    private void validateNavigation(Step currentStep, Deque<Step> steps, List<String> resultNames, Set<String> reachableStepNames, Set<String> reachableResultNames, List<RuntimeException> errors) {
         String currentStepName = currentStep.getName();
         reachableStepNames.add(currentStepName);
         for (Map<String, String> map : currentStep.getNavigationStrings()) {
@@ -352,13 +292,8 @@ public class PreCompileValidatorImpl extends AbstractValidator implements PreCom
                 boolean isResult = resultNames.contains(navigationTarget);
                 Step nextStepToCompile = Lambda.selectFirst(steps, having(on(Step.class).getName(), equalTo(navigationTarget)));
                 boolean isStep = nextStepToCompile != null;
-
                 if (isStep && isResult) {
-                    errors.add(
-                            new RuntimeException(
-                                "Navigation target: '" + navigationTarget + "' is declared both as step name and flow result."
-                            )
-                    );
+                    errors.add(new RuntimeException("Navigation target: \'" + navigationTarget + "\' is declared both as step name and flow result."));
                 }
                 if (isResult) {
                     reachableResultNames.add(navigationTarget);
@@ -366,12 +301,7 @@ public class PreCompileValidatorImpl extends AbstractValidator implements PreCom
                     if (isStep) {
                         validateNavigation(nextStepToCompile, steps, resultNames, reachableStepNames, reachableResultNames, errors);
                     } else {
-                        errors.add(
-                                new RuntimeException(
-                                        "Failed to compile step: " + currentStepName + ". The step/result name: " + entry.getValue() +
-                                                " of navigation: " + entry.getKey() + " -> " + entry.getValue() + " is missing"
-                                )
-                        );
+                        errors.add(new RuntimeException("Failed to compile step: " + currentStepName + ". The step/result name: " + entry.getValue() + " of navigation: " + entry.getKey() + " -> " + entry.getValue() + " is missing"));
                     }
                 }
             }
@@ -382,23 +312,17 @@ public class PreCompileValidatorImpl extends AbstractValidator implements PreCom
         return reachableStepNames.contains(navigationTarget) || reachableResultNames.contains(navigationTarget);
     }
 
-    private void validateStepsAreReachable(
-            Set<String> reachableStepNames,
-            Deque<Step> steps,
-            List<RuntimeException> errors) {
+    private void validateStepsAreReachable(Set<String> reachableStepNames, Deque<Step> steps, List<RuntimeException> errors) {
         for (Step step : steps) {
             String stepName = step.getName();
-            String messagePrefix = step.isOnFailureStep() ? "on_failure step '" : "Step '";
+            String messagePrefix = step.isOnFailureStep() ? "on_failure step \'" : "Step \'";
             if (!reachableStepNames.contains(stepName)) {
-                errors.add(new RuntimeException(messagePrefix + stepName + "' is unreachable."));
+                errors.add(new RuntimeException(messagePrefix + stepName + "\' is unreachable."));
             }
         }
     }
 
-    private void validateResultsAreReachable(
-            Set<String> reachableResultNames,
-            List<String> resultNames,
-            List<RuntimeException> errors) {
+    private void validateResultsAreReachable(Set<String> reachableResultNames, List<String> resultNames, List<RuntimeException> errors) {
         Set<String> unreachableResultNames = new HashSet<>(resultNames);
         unreachableResultNames.removeAll(reachableResultNames);
         if (!unreachableResultNames.isEmpty()) {
@@ -411,14 +335,9 @@ public class PreCompileValidatorImpl extends AbstractValidator implements PreCom
         Extension fileExtension = parsedSlang.getFileExtension();
         if (StringUtils.isNotEmpty(executableName) && !executableName.equals(fileName)) {
             if (fileExtension == null) {
-                result.getErrors().add(new IllegalArgumentException("Operation/Flow " + executableName +
-                        " is declared in a file named \"" + fileName + "\"," +
-                        " it should be declared in a file named \"" + executableName + "\" plus a valid " +
-                        "extension(" + Extension.getExtensionValuesAsString() + ") separated by \".\""));
+                result.getErrors().add(new IllegalArgumentException("Operation/Flow " + executableName + " is declared in a file named \"" + fileName + "\"," + " it should be declared in a file named \"" + executableName + "\" plus a valid " + "extension(" + Extension.getExtensionValuesAsString() + ") separated by \".\""));
             } else {
-                result.getErrors().add(new IllegalArgumentException("Operation/Flow " + executableName +
-                        " is declared in a file named \"" + fileName + "." + fileExtension.getValue() + "\"" +
-                        ", it should be declared in a file named \"" + executableName + "." + fileExtension.getValue() + "\""));
+                result.getErrors().add(new IllegalArgumentException("Operation/Flow " + executableName + " is declared in a file named \"" + fileName + "." + fileExtension.getValue() + "\"" + ", it should be declared in a file named \"" + executableName + "." + fileExtension.getValue() + "\""));
             }
         }
     }
@@ -426,9 +345,7 @@ public class PreCompileValidatorImpl extends AbstractValidator implements PreCom
     private void validateInputNamesDifferentFromOutputNames(ExecutableModellingResult result) {
         List<Input> inputs = result.getExecutable().getInputs();
         List<Output> outputs = result.getExecutable().getOutputs();
-        String errorMessage = "Inputs and outputs names should be different for \"" +
-                result.getExecutable().getId() + "\". " +
-                "Please rename input/output \"" + NAME_PLACEHOLDER + "\"";
+        String errorMessage = "Inputs and outputs names should be different for \"" + result.getExecutable().getId() + "\". " + "Please rename input/output \"" + NAME_PLACEHOLDER + "\"";
         try {
             validateListsHaveMutuallyExclusiveNames(inputs, outputs, errorMessage);
         } catch (RuntimeException e) {

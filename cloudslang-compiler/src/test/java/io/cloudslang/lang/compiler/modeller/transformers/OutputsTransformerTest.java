@@ -7,7 +7,6 @@
 * http://www.apache.org/licenses/LICENSE-2.0
 *
 *******************************************************************************/
-
 package io.cloudslang.lang.compiler.modeller.transformers;
 
 import io.cloudslang.lang.compiler.SlangSource;
@@ -45,7 +44,7 @@ import org.yaml.snakeyaml.introspector.BeanAccess;
  * @author Bonczidai Levente
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes=OutputsTransformerTest.Config.class)
+@ContextConfiguration(classes = OutputsTransformerTest.Config.class)
 public class OutputsTransformerTest {
 
     private static final long DEFAULT_TIMEOUT = 10000;
@@ -66,23 +65,23 @@ public class OutputsTransformerTest {
         outputsMap = (List) op.get(SlangTextualKeys.OUTPUTS_KEY);
     }
 
-    @Test (timeout = DEFAULT_TIMEOUT)
+    @Test(timeout = DEFAULT_TIMEOUT)
     public void testTransform() throws Exception {
-        @SuppressWarnings("unchecked") List<Output> outputs = outputTransformer.transform(outputsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) List<Output> outputs = outputTransformer.transform(outputsMap).getTransformedData();
         Assert.assertFalse(outputs.isEmpty());
     }
 
-    @Test (timeout = DEFAULT_TIMEOUT)
+    @Test(timeout = DEFAULT_TIMEOUT)
     public void testNoExpression() throws Exception {
-        @SuppressWarnings("unchecked") List<Output> outputs = outputTransformer.transform(outputsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) List<Output> outputs = outputTransformer.transform(outputsMap).getTransformedData();
         Output output = outputs.get(2);
         Assert.assertEquals("output3", output.getName());
         Assert.assertEquals("${output3}", output.getValue().get());
     }
 
-    @Test (timeout = DEFAULT_TIMEOUT)
+    @Test(timeout = DEFAULT_TIMEOUT)
     public void testExpressionKeyFromActionReturnValues() throws Exception {
-        @SuppressWarnings("unchecked") List<Output> outputs = outputTransformer.transform(outputsMap).getTransformedData();
+        @SuppressWarnings(value = { "unchecked" }) List<Output> outputs = outputTransformer.transform(outputsMap).getTransformedData();
         Output output = outputs.get(0);
         Assert.assertEquals("output1", output.getName());
         Assert.assertEquals("${ input1 }", output.getValue().get());
@@ -127,6 +126,5 @@ public class OutputsTransformerTest {
         public SystemPropertyValidator systemPropertyValidator() {
             return new SystemPropertyValidatorImpl();
         }
-
     }
 }

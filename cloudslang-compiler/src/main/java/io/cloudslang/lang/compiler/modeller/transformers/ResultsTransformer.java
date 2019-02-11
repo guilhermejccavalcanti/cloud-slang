@@ -1,18 +1,4 @@
 package io.cloudslang.lang.compiler.modeller.transformers;
-/*******************************************************************************
-* (c) Copyright 2014 Hewlett-Packard Development Company, L.P.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License v2.0 which accompany this distribution.
-*
-* The Apache License is available at
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-*******************************************************************************/
-
-
-/*
- * Created by orius123 on 05/11/14.
- */
 
 import io.cloudslang.lang.compiler.modeller.result.BasicTransformModellingResult;
 import io.cloudslang.lang.compiler.modeller.result.TransformModellingResult;
@@ -34,9 +20,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ResultsTransformer extends InOutTransformer implements Transformer<List, List<Result>> {
-    
+
     @Autowired
     private PreCompileValidator preCompileValidator;
+
     @Autowired
     private ExecutableValidator executableValidator;
 
@@ -44,21 +31,18 @@ public class ResultsTransformer extends InOutTransformer implements Transformer<
     public TransformModellingResult<List<Result>> transform(List rawData) {
         List<Result> transformedData = new ArrayList<>();
         List<RuntimeException> errors = new ArrayList<>();
-
-        // If there are no results specified, add the default SUCCESS & FAILURE results
-        if(CollectionUtils.isEmpty(rawData)){
+        if (CollectionUtils.isEmpty(rawData)) {
             return postProcessResults(transformedData, errors);
         }
         for (Object rawResult : rawData) {
             try {
                 if (rawResult instanceof String) {
-                    //- some_result
                     addResult(transformedData, createNoExpressionResult((String) rawResult), errors);
-                } else if (rawResult instanceof Map) {
-                    // - some_result: some_expression
-                    // the value of the result is an expression we need to evaluate at runtime
-                    @SuppressWarnings("unchecked") Map.Entry<String, Serializable> entry = (Map.Entry<String, Serializable>) (((Map) rawResult).entrySet()).iterator().next();
-                    addResult(transformedData, createExpressionResult(entry.getKey(), entry.getValue()), errors);
+                } else {
+                    if (rawResult instanceof Map) {
+                        @SuppressWarnings(value = { "unchecked" }) Map.Entry<String, Serializable> entry = (Map.Entry<String, Serializable>) (((Map) rawResult).entrySet()).iterator().next();
+                        addResult(transformedData, createExpressionResult(entry.getKey(), entry.getValue()), errors);
+                    }
                 }
             } catch (RuntimeException rex) {
                 errors.add(rex);
@@ -68,8 +52,8 @@ public class ResultsTransformer extends InOutTransformer implements Transformer<
     }
 
     public void addDefaultResultsIfNeeded(List rawResults, ExecutableType executableType, List<Result> resolvedResults, List<RuntimeException> errors) {
-        if(rawResults == null && CollectionUtils.isEmpty(resolvedResults)) {
-            switch (executableType) {
+        if (rawResults == null && CollectionUtils.isEmpty(resolvedResults)) {
+            switch(executableType) {
                 case FLOW:
                     addResult(resolvedResults, createNoExpressionResult(ScoreLangConstants.SUCCESS_RESULT), errors);
                     addResult(resolvedResults, createNoExpressionResult(ScoreLangConstants.FAILURE_RESULT), errors);
@@ -94,9 +78,7 @@ public class ResultsTransformer extends InOutTransformer implements Transformer<
         }
     }
 
-    private TransformModellingResult<List<Result>> postProcessResults(
-            List<Result> transformedData,
-            List<RuntimeException> errors) {
+    private TransformModellingResult<List<Result>> postProcessResults(List<Result> transformedData, List<RuntimeException> errors) {
         return new BasicTransformModellingResult<>(transformedData, errors);
     }
 
@@ -125,12 +107,7 @@ public class ResultsTransformer extends InOutTransformer implements Transformer<
             return new Result(resultName, null);
         } else {
             Accumulator accumulator = extractFunctionData(resultValue);
-            return new Result(
-                    resultName,
-                    ValueFactory.create(resultValue),
-                    accumulator.getFunctionDependencies(),
-                    accumulator.getSystemPropertyDependencies()
-            );
+            return new Result(resultName, ValueFactory.create(resultValue), accumulator.getFunctionDependencies(), accumulator.getSystemPropertyDependencies());
         }
     }
 }

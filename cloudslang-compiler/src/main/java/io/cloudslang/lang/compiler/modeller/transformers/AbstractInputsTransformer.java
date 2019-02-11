@@ -18,7 +18,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import static io.cloudslang.lang.compiler.SlangTextualKeys.DEFAULT_KEY;
 import static io.cloudslang.lang.compiler.SlangTextualKeys.PRIVATE_INPUT_KEY;
 import static io.cloudslang.lang.compiler.SlangTextualKeys.REQUIRED_KEY;
@@ -38,36 +37,26 @@ public abstract class AbstractInputsTransformer extends InOutTransformer {
     }
 
     protected Input transformSingleInput(Object rawInput) {
-        // - some_input
-        // this is our default behaviour that if the user specifies only a key, the key is also the ref we look for
         if (rawInput instanceof String) {
             String inputName = (String) rawInput;
             return createInput(inputName, null);
-        } else if (rawInput instanceof Map) {
-            @SuppressWarnings("unchecked")
-            Map<String, ?> map = (Map<String, ?>) rawInput;
-            Iterator<? extends Map.Entry<String, ?>> iterator = map.entrySet().iterator();
-            Map.Entry<String, ?> entry = iterator.next();
-            Serializable entryValue = (Serializable) entry.getValue();
-            if (map.size() > 1) {
-                throw new RuntimeException("Invalid syntax after input \"" + entry.getKey() + "\". " +
-                        "Please check all inputs are provided as a list and each input is preceded by a hyphen. " +
-                        "Input \"" + iterator.next().getKey() + "\" is missing the hyphen.");
+        } else {
+            if (rawInput instanceof Map) {
+                @SuppressWarnings(value = { "unchecked" }) Map<String, ?> map = (Map<String, ?>) rawInput;
+                Iterator<? extends Map.Entry<String, ?>> iterator = map.entrySet().iterator();
+                Map.Entry<String, ?> entry = iterator.next();
+                Serializable entryValue = (Serializable) entry.getValue();
+                if (map.size() > 1) {
+                    throw new RuntimeException("Invalid syntax after input \"" + entry.getKey() + "\". " + "Please check all inputs are provided as a list and each input is preceded by a hyphen. " + "Input \"" + iterator.next().getKey() + "\" is missing the hyphen.");
+                }
+                if (entryValue == null) {
+                    throw new RuntimeException("Could not transform Input : " + rawInput + " since it has a null value.\n\nMake sure a value is specified or that indentation is properly done.");
+                }
+                if (entryValue instanceof Map) {
+                    return createPropInput((Map.Entry<String, Map<String, Serializable>>) entry);
+                }
+                return createInput(entry.getKey(), entryValue);
             }
-            if(entryValue == null){
-                throw new RuntimeException("Could not transform Input : " + rawInput + " since it has a null value.\n\nMake sure a value is specified or that indentation is properly done.");
-            }
-            if (entryValue instanceof Map) {
-                // - some_inputs:
-                //     property1: value1
-                //     property2: value2
-                // this is the verbose way of defining inputs with all of the properties available
-                //noinspection unchecked
-                return createPropInput((Map.Entry<String, Map<String, Serializable>>) entry);
-            }
-            // - some_input: some_expression
-            // the value of the input is an expression we need to evaluate at runtime
-            return createInput(entry.getKey(), entryValue);
         }
         throw new RuntimeException("Could not transform Input : " + rawInput);
     }
@@ -75,54 +64,31 @@ public abstract class AbstractInputsTransformer extends InOutTransformer {
     private Input createPropInput(Map.Entry<String, Map<String, Serializable>> entry) {
         Map<String, Serializable> props = entry.getValue();
         List<String> knownKeys = Arrays.asList(REQUIRED_KEY, SENSITIVE_KEY, PRIVATE_INPUT_KEY, DEFAULT_KEY);
-
         for (String key : props.keySet()) {
             if (!knownKeys.contains(key)) {
                 throw new RuntimeException("key: " + key + " in input: " + entry.getKey() + " is not a known property");
             }
         }
-
-        // default is required=true
-        boolean required = !props.containsKey(REQUIRED_KEY) ||
-                (boolean) props.get(REQUIRED_KEY);
-        // default is sensitive=false
-        boolean sensitive = props.containsKey(SENSITIVE_KEY) &&
-                (boolean) props.get(SENSITIVE_KEY);
-        // default is private=false
-        boolean privateInput = props.containsKey(PRIVATE_INPUT_KEY) &&
-                (boolean) props.get(PRIVATE_INPUT_KEY);
+        boolean required = !props.containsKey(REQUIRED_KEY) || (boolean) props.get(REQUIRED_KEY);
+        boolean sensitive = props.containsKey(SENSITIVE_KEY) && (boolean) props.get(SENSITIVE_KEY);
+        boolean privateInput = props.containsKey(PRIVATE_INPUT_KEY) && (boolean) props.get(PRIVATE_INPUT_KEY);
         boolean defaultSpecified = props.containsKey(DEFAULT_KEY);
         String inputName = entry.getKey();
         Serializable value = defaultSpecified ? props.get(DEFAULT_KEY) : null;
-
         if (privateInput && !defaultSpecified) {
-            throw new RuntimeException(
-                    "Input: " + inputName + " is private but no default value was specified");
+            throw new RuntimeException("Input: " + inputName + " is private but no default value was specified");
         }
-
         return createInput(inputName, value, sensitive, required, privateInput);
     }
 
-    private Input createInput(
-            String name,
-            Serializable value) {
+    private Input createInput(String name, Serializable value) {
         return createInput(name, value, false, true, false);
     }
 
-    private Input createInput(
-            String name,
-            Serializable value,
-            boolean sensitive,
-            boolean required,
-            boolean privateInput) {
+    private Input createInput(String name, Serializable value, boolean sensitive, boolean required, boolean privateInput) {
         executableValidator.validateInputName(name);
         preCompileValidator.validateStringValue(name, value, this);
         Accumulator dependencyAccumulator = extractFunctionData(value);
-        return new Input.InputBuilder(name, value, sensitive)
-                .withRequired(required)
-                .withPrivateInput(privateInput)
-                .withFunctionDependencies(dependencyAccumulator.getFunctionDependencies())
-                .withSystemPropertyDependencies(dependencyAccumulator.getSystemPropertyDependencies())
-                .build();
+        return new Input.InputBuilder(name, value, sensitive).withRequired(required).withPrivateInput(privateInput).withFunctionDependencies(dependencyAccumulator.getFunctionDependencies()).withSystemPropertyDependencies(dependencyAccumulator.getSystemPropertyDependencies()).build();
     }
 }

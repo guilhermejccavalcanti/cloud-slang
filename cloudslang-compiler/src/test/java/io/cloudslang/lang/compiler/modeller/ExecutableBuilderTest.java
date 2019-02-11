@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyMap;
@@ -62,6 +61,7 @@ public class ExecutableBuilderTest {
     private PreCompileValidator preCompileValidator;
 
     private static final String FILE_NAME = "filename";
+
     private static final String NAMESPACE = "io.cloudslang";
 
     @Before
@@ -77,12 +77,10 @@ public class ExecutableBuilderTest {
         imports.put("ops", "ops");
         Mockito.when(parsedSlang.getImports()).thenReturn(imports);
         Mockito.when(parsedSlang.getNamespace()).thenReturn(NAMESPACE);
-
         List<Result> results = new ArrayList<>();
         Map<String, Serializable> postExecutableActionData = new HashMap<>();
         postExecutableActionData.put(SlangTextualKeys.RESULTS_KEY, (Serializable) results);
         Mockito.when(transformersHandler.runTransformers(anyMap(), anyList(), anyList(), anyString())).thenReturn(postExecutableActionData);
-
         return parsedSlang;
     }
 
@@ -99,10 +97,8 @@ public class ExecutableBuilderTest {
         Map<String, Object> executableRawData = new HashMap<>();
         String flowName = "flow2";
         executableRawData.put(SlangTextualKeys.EXECUTABLE_NAME_KEY, flowName);
-
         exception.expect(RuntimeException.class);
         exception.expectMessage(flowName);
-
         transformToExecutable(mockParsedSlang, executableRawData);
     }
 
@@ -113,10 +109,8 @@ public class ExecutableBuilderTest {
         executableRawData.put(SlangTextualKeys.WORKFLOW_KEY, new LinkedHashMap<>());
         String flowName = "flow2";
         executableRawData.put(SlangTextualKeys.EXECUTABLE_NAME_KEY, flowName);
-
         exception.expect(RuntimeException.class);
         exception.expectMessage(flowName);
-
         transformToExecutable(mockParsedSlang, executableRawData);
     }
 
@@ -131,10 +125,8 @@ public class ExecutableBuilderTest {
         workFlowData.add(step);
         executableRawData.put(SlangTextualKeys.WORKFLOW_KEY, workFlowData);
         executableRawData.put(SlangTextualKeys.EXECUTABLE_NAME_KEY, "flow1");
-
         exception.expect(RuntimeException.class);
         exception.expectMessage(stepName);
-
         transformToExecutable(mockParsedSlang, executableRawData);
     }
 
@@ -150,10 +142,8 @@ public class ExecutableBuilderTest {
         workFlowData.put(stepName, stepRawData);
         executableRawData.put(SlangTextualKeys.WORKFLOW_KEY, workFlowData);
         executableRawData.put(SlangTextualKeys.EXECUTABLE_NAME_KEY, "flow1");
-
         exception.expect(RuntimeException.class);
         exception.expectMessage(keyword);
-
         transformToExecutable(mockParsedSlang, executableRawData);
     }
 
@@ -171,10 +161,8 @@ public class ExecutableBuilderTest {
         workFlowData.put(stepName, stepRawData);
         executableRawData.put(SlangTextualKeys.WORKFLOW_KEY, workFlowData);
         executableRawData.put(SlangTextualKeys.EXECUTABLE_NAME_KEY, "flow1");
-
         exception.expect(RuntimeException.class);
         exception.expectMessage(keyword);
-
         transformToExecutable(mockParsedSlang, executableRawData);
     }
 
@@ -193,10 +181,8 @@ public class ExecutableBuilderTest {
         workFlowData.put(stepName, stepRawData);
         executableRawData.put(SlangTextualKeys.WORKFLOW_KEY, workFlowData);
         executableRawData.put(SlangTextualKeys.EXECUTABLE_NAME_KEY, "flow1");
-
         exception.expect(RuntimeException.class);
         exception.expectMessage(keyword);
-
         transformToExecutable(mockParsedSlang, executableRawData);
     }
 
@@ -216,10 +202,8 @@ public class ExecutableBuilderTest {
         workFlowData.add(step);
         executableRawData.put(SlangTextualKeys.WORKFLOW_KEY, workFlowData);
         executableRawData.put(SlangTextualKeys.EXECUTABLE_NAME_KEY, "flow1");
-
         exception.expect(RuntimeException.class);
         exception.expectMessage(stepName);
-
         transformToExecutable(mockParsedSlang, executableRawData);
     }
 
@@ -229,7 +213,6 @@ public class ExecutableBuilderTest {
         Map<String, Object> executableRawData = new HashMap<>();
         List<Map<String, Object>> workFlowData = new ArrayList<>();
         Map<String, Object> stepRawData = new HashMap<>();
-
         stepRawData.put(SlangTextualKeys.DO_KEY, new HashMap<>());
         String stepName = "step1";
         Map<String, Object> step = new HashMap<>();
@@ -237,22 +220,18 @@ public class ExecutableBuilderTest {
         workFlowData.add(step);
         executableRawData.put(SlangTextualKeys.WORKFLOW_KEY, workFlowData);
         executableRawData.put(SlangTextualKeys.EXECUTABLE_NAME_KEY, "flow1");
-
         exception.expect(RuntimeException.class);
         exception.expectMessage(stepName);
-
         transformToExecutable(mockParsedSlang, executableRawData);
     }
 
     @Test
     public void simpleFlowDataIsValid() throws Exception {
         ParsedSlang mockParsedSlang = mockFlowSlangFile();
-
         Map<String, Object> executableRawData = new HashMap<>();
         List<Map<String, Object>> workFlowData = new ArrayList<>();
         Map<String, Object> stepRawData = new HashMap<>();
         Map<String, Object> doRawData = new HashMap<>();
-
         String refId = "ops.print";
         doRawData.put(refId, new HashMap<>());
         stepRawData.put(SlangTextualKeys.DO_KEY, doRawData);
@@ -263,7 +242,6 @@ public class ExecutableBuilderTest {
         executableRawData.put(SlangTextualKeys.WORKFLOW_KEY, workFlowData);
         String flowName = "flow1";
         executableRawData.put(SlangTextualKeys.EXECUTABLE_NAME_KEY, flowName);
-
         Flow flow = (Flow) executableBuilder.transformToExecutable(mockParsedSlang, executableRawData).getExecutable();
         Assert.assertEquals(SlangTextualKeys.FLOW_TYPE, flow.getType());
         Assert.assertEquals(flowName, flow.getName());
@@ -271,18 +249,15 @@ public class ExecutableBuilderTest {
         Assert.assertEquals(1, steps.size());
         Assert.assertEquals(stepName, steps.getFirst().getName());
         Assert.assertEquals(refId, steps.getFirst().getRefId());
-
     }
 
     @Test
     public void stepWithImplicitAlias() throws Exception {
         ParsedSlang mockParsedSlang = mockFlowSlangFile();
-
         Map<String, Object> executableRawData = new HashMap<>();
         List<Map<String, Object>> workFlowData = new ArrayList<>();
         Map<String, Object> stepRawData = new HashMap<>();
         Map<String, Object> doRawData = new HashMap<>();
-
         String refString = "print";
         doRawData.put(refString, new HashMap<>());
         stepRawData.put(SlangTextualKeys.DO_KEY, doRawData);
@@ -293,9 +268,7 @@ public class ExecutableBuilderTest {
         executableRawData.put(SlangTextualKeys.WORKFLOW_KEY, workFlowData);
         String flowName = "flow1";
         executableRawData.put(SlangTextualKeys.EXECUTABLE_NAME_KEY, flowName);
-
         Flow flow = (Flow) executableBuilder.transformToExecutable(mockParsedSlang, executableRawData).getExecutable();
-
         Assert.assertEquals(SlangTextualKeys.FLOW_TYPE, flow.getType());
         Assert.assertEquals(flowName, flow.getName());
         Deque<Step> steps = flow.getWorkflow().getSteps();
@@ -312,11 +285,9 @@ public class ExecutableBuilderTest {
         executableRawData.put(key, "b");
         String operationName = "op1";
         executableRawData.put(SlangTextualKeys.EXECUTABLE_NAME_KEY, operationName);
-
         exception.expect(RuntimeException.class);
         exception.expectMessage(operationName);
         exception.expectMessage(key);
-
         Operation op = (Operation) transformToExecutable(mockParsedSlang, executableRawData);
         Assert.assertNotNull(op);
     }
@@ -326,16 +297,13 @@ public class ExecutableBuilderTest {
         String keyword = "a";
         Mockito.when(transformer.keyToTransform()).thenReturn(keyword);
         Mockito.when(transformer.getScopes()).thenReturn(Collections.singletonList(Transformer.Scope.BEFORE_EXECUTABLE));
-
         ParsedSlang mockParsedSlang = mockOperationsSlangFile();
         Map<String, Object> executableRawData = new HashMap<>();
         executableRawData.put(keyword, "b");
         String operationName = "op1";
         executableRawData.put(SlangTextualKeys.EXECUTABLE_NAME_KEY, operationName);
-
         exception.expect(RuntimeException.class);
         exception.expectMessage(operationName);
-
         transformToExecutable(mockParsedSlang, executableRawData);
     }
 
@@ -348,6 +316,7 @@ public class ExecutableBuilderTest {
     }
 
     static class Config {
+
         @Bean
         public ExecutableBuilder executableBuilder() {
             return new ExecutableBuilder();
@@ -369,7 +338,7 @@ public class ExecutableBuilderTest {
         }
 
         @Bean
-        public TransformersHandler transformersHandler(){
+        public TransformersHandler transformersHandler() {
             return Mockito.mock(TransformersHandler.class);
         }
 
